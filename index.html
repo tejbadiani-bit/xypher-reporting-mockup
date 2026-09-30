@@ -135,7 +135,7 @@ h2.sec{font-size:14px;margin:18px 0 8px}
   <div class="tab" data-v="accounts">Accounts</div>
   <div class="tab" data-v="notes">Build Notes</div>
 </div>
-<div class="banner"><b>Mock-up · illustrative data only.</b> Rebuilt from DXR's live Zoho dashboards (Harry's Pod, Sarah's Pod, Account Management) and favourite reports, plus new Account Management / Whitespace views. Accounts, figures and targets are made up; rep names are abbreviated.</div>
+<div class="banner"><b>Mock-up · illustrative data only.</b> Hover a <b>Buildable / Needs data prep</b> label on any component to see what it depends on, and see Build Notes for the full check. Rebuilt from DXR's live Zoho dashboards (Harry's Pod, Sarah's Pod, Account Management) and favourite reports, plus new Account Management / Whitespace views. Accounts, figures and targets are made up; rep names are abbreviated.</div>
 <div class="page" id="app"></div>
 <div class="toast" id="toast"></div>
 
@@ -156,54 +156,54 @@ const REPS=[
 const PODS={Harry:"Harry's Pod",Sarah:"Sarah's Pod"};
 const repPod=n=>REPS.find(r=>r.n===n).pod;
 const PRODUCTS=[
- {k:'CE',n:'Cyber Essentials',gp:1200,w:.72},{k:'PT',n:'Penetration Testing',gp:7000,w:.46},{k:'VS',n:'Vulnerability Scanning',gp:4000,w:.3},
- {k:'SOC',n:'SOC',gp:18000,w:.12},{k:'EDR',n:'EDR',gp:5000,w:.16},{k:'PH',n:'Phishing',gp:2000,w:.26},{k:'CO',n:'Compliance',gp:3000,w:.2},
- {k:'SR',n:'Security Review',gp:4000,w:.18},{k:'CSC',n:'Cyber Security Consultancy',gp:6000,w:.14},{k:'PM',n:'Project-Management',gp:3000,w:.08}];
+ {k:'CE',n:'Cyber Essentials',gp:1200,w:.72},{k:'PT',n:'Pen Testing',gp:7000,w:.46},{k:'VS',n:'Vulnerability Management',gp:4000,w:.3},
+ {k:'SOC',n:'SOC Monitoring',gp:18000,w:.12},{k:'EDR',n:'EDR',gp:5000,w:.16},{k:'PH',n:'Phishing',gp:2000,w:.26},{k:'CO',n:'Consultancy / GRC',gp:3000,w:.2},
+ {k:'SR',n:'Configuration Reviews',gp:4000,w:.18},{k:'CSC',n:'ITHC',gp:6000,w:.14}];
 const PK=Object.fromEntries(PRODUCTS.map(p=>[p.k,p]));
-const ADJ={CE:['PT','VS','PH'],PT:['VS','SOC','SR'],VS:['SOC','EDR'],EDR:['SOC'],PH:['CO','CE'],CO:['SR','CSC'],SR:['PT'],SOC:['EDR'],CSC:['CO'],PM:['CSC']};
+const ADJ={CE:['PT','VS','PH'],PT:['VS','SOC','SR'],VS:['SOC','EDR'],EDR:['SOC'],PH:['CO','CE'],CO:['SR','CSC'],SR:['PT'],SOC:['EDR'],CSC:['CO','PT']};
 const PLACES=['Northshire','Calder','Pennine','Wyvern','Humber','Aire','Severn','Mersey','Trent','Tyne','Wolds','Dales','Fenland','Solent','Cotswold','Moorland','Ribble','Kennet','Tamar','Eden'];
 const ORGT=[['County Council','Public Sector'],['Borough Council','Public Sector'],['Police','Public Sector'],['Fire & Rescue','Public Sector'],['NHS Trust','Healthcare'],['Academy Trust','Education'],['University','Education'],['Housing Group','Housing'],['Solicitors LLP','Legal'],['Legal Services','Legal'],['Building Society','Financial Services'],['Wealth Partners','Financial Services'],['Logistics','Manufacturing & Logistics'],['Engineering','Manufacturing & Logistics'],['Manufacturing','Manufacturing & Logistics']];
 const SECTORS=[...new Set(ORGT.map(o=>o[1]))];
-const OPEN_STAGES=['Qualify','Solution Validation','Proposal/Bid Submitted','Negotiation'];
-const TYPES=['New Business','Existing - Upsell','Existing Renewal','Tender'];
-const SOURCES=['ZoomInfo','Outbound Call','Inbound Web','Referral','Tender Portal','Partner'];
+const OPEN_STAGES=['Qualify','Solution Validation','Proposal / Bid Submitted','Negotiation / Commercial Agreement'];
+const TYPES=['New Business','Cross-Sell','Expansion','Renewal'];
+const SOURCES=['ZoomInfo','Cold Outreach','Website','External Referral','Tender','Partner'];
 
 // accounts
 const combos=[];PLACES.forEach(p=>ORGT.forEach(o=>combos.push([p,o])));
 for(let i=combos.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[combos[i],combos[j]]=[combos[j],combos[i]]}
 const ACCTS=combos.slice(0,160).map(([p,o],i)=>{
-  const x=R();const status=x<.62?'Live':x<.76?'Lapsed':x<.985?'Dormant':'No longer in business';
-  const m=status==='Live'?.8:status==='Lapsed'?.6:.4;
+  const x=R();const status=x<.62?'Active':x<.76?'Lapsing':x<.985?'Dormant':'Historic';
+  const m=status==='Active'?.8:status==='Lapsing'?.6:.4;
   let owned=PRODUCTS.filter(pr=>R()<pr.w*m).map(pr=>pr.k);if(!owned.length)owned=[R()<.7?'CE':'PT'];
   const base=owned.reduce((s,k)=>s+PK[k].gp,0);
   let lfy=0,tfy=0;
-  if(status==='Live'){lfy=Math.round(base*rf(.4,1.3)/10)*10;tfy=Math.round(lfy*rf(.5,1.7)/10)*10;if(R()<.12)lfy=0}
-  else if(status==='Lapsed'){lfy=Math.round(base*rf(.3,1)/10)*10;tfy=R()<.7?0:Math.round(lfy*rf(.05,.3)/10)*10}
+  if(status==='Active'){lfy=Math.round(base*rf(.4,1.3)/10)*10;tfy=Math.round(lfy*rf(.5,1.7)/10)*10;if(R()<.12)lfy=0}
+  else if(status==='Lapsing'){lfy=Math.round(base*rf(.3,1)/10)*10;tfy=R()<.7?0:Math.round(lfy*rf(.05,.3)/10)*10}
   const owner=pick(REPS).n;
   return {id:'A'+(1000+i),name:p+' '+o[0],sector:o[1],owner,status,owned,lfy,tfy,
     clv:Math.round((lfy+tfy+base*rf(.5,3))/10)*10,
-    rating:status==='Live'?pick(['A - Awesome','A - Awesome','B - Basic','B - Basic','C - Can\'t Do']):pick(['B - Basic','C - Can\'t Do','D - Dump']),
+    rating:status==='Active'?pick(['A - Awesome','A - Awesome','B - Basic','B - Basic','C - Can\'t Do']):pick(['B - Basic','C - Can\'t Do','D - Dump']),
     employees:pick([45,120,250,600,1400,3200,8000])};
 });
 const ACC=Object.fromEntries(ACCTS.map(a=>[a.id,a]));
 // opportunities
 const OPPS=[];let oid=1;
 function mkOpp(o){OPPS.push(Object.assign({id:'O'+(oid++)},o))}
-ACCTS.filter(a=>a.status==='Live'||a.status==='Lapsed').forEach(a=>{
+ACCTS.filter(a=>a.status==='Active'||a.status==='Lapsing').forEach(a=>{
   if(R()<.38){const cand=[...new Set(a.owned.flatMap(k=>ADJ[k]))].filter(k=>!a.owned.includes(k));const k=cand.length?pick(cand):pick(PRODUCTS).k;
     const created=addD(TODAY,-ri(3,120));
-    mkOpp({acc:a.id,name:a.name+' – '+PK[k].n,prod:k,owner:a.owner,type:a.status==='Live'?'Existing - Upsell':'Existing Renewal',stage:pick(OPEN_STAGES),gp:Math.round(PK[k].gp*rf(.7,1.4)/10)*10,created,close:addD(TODAY,ri(7,150)),src:pick(SOURCES)})}
+    mkOpp({acc:a.id,name:a.name+' – '+PK[k].n,prod:k,owner:a.owner,type:a.status==='Active'?'Cross-Sell':'Renewal',stage:pick(OPEN_STAGES),gp:Math.round(PK[k].gp*rf(.7,1.4)/10)*10,created,close:addD(TODAY,ri(7,150)),src:pick(SOURCES)})}
 });
-const live=ACCTS.filter(a=>a.status!=='No longer in business');
+const live=ACCTS.filter(a=>a.status!=='Historic');
 REPS.forEach(r=>{
   for(let m=0;m<11;m++){ // Nov 25 .. Sep 26
     const ms=new Date(2025,10+m,1), me=new Date(2025,11+m,0);
     let goal=r.mt*r.pf*rf(.45,1.2), got=0;
     while(got<goal){const a=pick(live);const k=pick(PRODUCTS).k;const gp=Math.round(PK[k].gp*rf(.5,1.8)/10)*10;
       const day=ri(1,me.getDate());const close=new Date(ms.getFullYear(),ms.getMonth(),Math.min(day,m===10?30:day));
-      const t=R();mkOpp({acc:a.id,name:a.name+' – '+PK[k].n,prod:k,owner:r.n,type:t<.34?'New Business':t<.68?'Existing - Upsell':t<.92?'Existing Renewal':'Tender',stage:'Closed Won',gp,created:addD(close,-ri(10,95)),close,src:pick(SOURCES)});got+=gp}
+      const t=R();mkOpp({acc:a.id,name:a.name+' – '+PK[k].n,prod:k,owner:r.n,type:t<.36?'New Business':t<.62?'Cross-Sell':t<.74?'Expansion':'Renewal',stage:'Closed Won',gp,created:addD(close,-ri(10,95)),close,src:pick(SOURCES)});got+=gp}
     const lost=ri(0,3);for(let i=0;i<lost;i++){const a=pick(live);const k=pick(PRODUCTS).k;const close=new Date(ms.getFullYear(),ms.getMonth(),ri(1,m===10?30:me.getDate()));
-      mkOpp({acc:a.id,name:a.name+' – '+PK[k].n,prod:k,owner:r.n,type:pick(TYPES),stage:'Closed Lost',gp:Math.round(PK[k].gp*rf(.6,1.6)/10)*10,created:addD(close,-ri(15,120)),close,src:pick(SOURCES),reason:pick(['Price','Lost to Competitor','No Decision','Budget Withdrawn','Timing','Framework Supplier Chosen']),comp:pick(['—','Bridewell','NCC Group','Pentest People','Claranet','Sapphire','—'])})}
+      mkOpp({acc:a.id,name:a.name+' – '+PK[k].n,prod:k,owner:r.n,type:pick(TYPES),stage:'Closed Lost',gp:Math.round(PK[k].gp*rf(.6,1.6)/10)*10,created:addD(close,-ri(15,120)),close,src:pick(SOURCES),reason:pick(['Price','Lost to Competitor','Lost to Competitor','No Budget / Lost Funding','No Decision / Non-Responsive','Other']),comp:pick(['—','Bridewell','NCC Group','Pentest People','Claranet','Sapphire','—'])})}
   }
   // new-business open pipeline
   for(let i=0;i<ri(3,8);i++){const a=pick(live);const k=pick(PRODUCTS).k;mkOpp({acc:a.id,name:a.name+' – '+PK[k].n,prod:k,owner:r.n,type:'New Business',stage:pick(OPEN_STAGES),gp:Math.round(PK[k].gp*rf(.6,1.5)/10)*10,created:addD(TODAY,-ri(1,85)),close:addD(TODAY,ri(10,120)),src:pick(SOURCES)})}
@@ -230,19 +230,37 @@ Chart.defaults.font.family='Inter, -apple-system, sans-serif';Chart.defaults.fon
 const PAL=['#0176d3','#04844b','#fe9339','#8a33ea','#e3066a','#0b827c','#9e2a00','#5867e8','#ba0517','#706e6b','#1ab9ff','#3ba755'];
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',2600)}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function cmp(span,title,body,opts={}){return `<div class="cmp ${span}"><div class="cmp-h"><span>${title}</span>${opts.tag==='z'?'<span class="tag z">From Zoho</span>':opts.tag==='n'?'<span class="tag n">New in Salesforce</span>':''}</div><div class="cmp-b">${body}</div>${opts.rep?`<div class="cmp-f"><a onclick="openReport('${opts.rep}')">View Report (${esc(RDEF[opts.rep].name)})</a></div>`:''}</div>`}
+const FEAS=[
+ [/Pod GP Target|Team GP Target|GP vs Target|Account Mgt GP/,'fix','Needs a GP field on Opportunity (Zoho "GP In Year" was not migrated) and per-rep monthly targets on Sales_Target__c. The gauge shows Attainment % with fixed 50/90/100% bands.'],
+ [/Conversion/,'fix','Funnel chart is standard. "Reached Proposal" needs a Max Stage Reached field stamped by a flow; migrated deals have no stage history.'],
+ [/GP Split|New Business Contributor/,'fix','Opportunity Type is "New Business" on almost every DXR deal. Backfill it from Zoho_Deal_Type__c, and add the GP field.'],
+ [/Pipeline KPIs/,'fix','Open deals and average order value work today on Amount. GP-based average and the New Business split need the GP field and the Type backfill.'],
+ [/Pod KPIs/,'fix','Deals, meetings and leads work today. Dials need a dialler logging Call Tasks (only 52 tasks logged in 30 days today). GP needs the GP field.'],
+ [/Meetings by Type/,'fix','Event has no meeting-type field. Add Meeting_Type__c (New / Existing / Sequencing / Inbound) and backfill it from Zoho Meeting_Type.'],
+ [/Revenue vs AOV/,'ok','Scatter chart is standard, but without quadrant lines. Plot on Amount now, or on GP once the field exists.'],
+ [/Account Distribution|All Account Ownership/,'fix','Uses DXR Account_BU_Relationship__c.Relationship_Status__c, but only "Active" is populated. Backfill Lapsing / Dormant from Zoho Customer Status, then keep it current from last-invoice date. Lifetime value = Total_ERP_Sales__c.'],
+ [/Lead Pipeline/,'ok','Standard Lead report grouped by owner.'],
+ [/Headline KPIs/,'fix','Works on Amount (bookings) today. GP needs the GP field.'],
+ [/Whitespace Headlines|Product Penetration|Whitespace Heatmap/,'fix','Needs "services owned" per account. Product_Service_Line__c is blank on 97% of DXR won deals: backfill from Zoho Products Bought / Quoted Items, then roll up to one flag per service on Account.'],
+ [/Next Best Product/,'fix','Formula field on Account driven by agreed cross-sell rules (owns X → offer Y). Depends on the per-service flags.'],
+ [/Retention|Spend Trend|Current vs Previous|At Risk|Growth|Win-back|Spend –/,'fix','Spend = bookings per DXR fiscal year, from Customer_Year_Summary__c (in sandbox) until the BC invoice sync is live. The BC migration snapshot is a lifetime total only.'],
+ [/Product Whitespace/,'lwc','The tile grid needs a small Lightning Web Component. No-code alternative: a page section of per-service checkboxes.'],
+ [/Opportunities \(/,'ok','Standard related list.']];
+const FZL={ok:['#2e844a','#e6f4ea','Buildable now'],fix:['#8c4b02','#fff4e5','Needs data prep'],lwc:['#5a1ba9','#f1e8fd','Needs custom component']};
+function feas(t){const f=FEAS.find(x=>x[0].test(t));return f?`<span class="tag" title="${esc(f[2])}" style="background:${FZL[f[1]][1]};color:${FZL[f[1]][0]};cursor:help">${FZL[f[1]][2]} ⓘ</span>`:''}
+function cmp(span,title,body,opts={}){return `<div class="cmp ${span}"><div class="cmp-h"><span>${title}</span><span style="display:flex;gap:4px">${feas(title)}${opts.tag==='z'?'<span class="tag z">From Zoho</span>':opts.tag==='n'?'<span class="tag n">New in Salesforce</span>':''}</span></div><div class="cmp-b">${body}</div>${opts.rep?`<div class="cmp-f"><a onclick="openReport('${opts.rep}')">View Report (${esc(RDEF[opts.rep].name)})</a></div>`:''}</div>`}
 function gaugeHTML(id,val,tgt,sub){const p=tgt?val/tgt:0;return `<div class="gauge"><canvas id="${id}"></canvas><div class="gv"><b style="color:${RAG(p)[0]}">${gbpk(val)}</b><span>${pct(p)} of ${gbpk(tgt)} ${sub||''}</span></div></div>`}
 function gauge(id,val,tgt){const p=Math.min(tgt?val/tgt:0,1);mk(id,{type:'doughnut',data:{datasets:[{data:[p,1-p],backgroundColor:[RAG(tgt?val/tgt:0)[1],'#ecebea'],borderWidth:0}]},options:{rotation:-90,circumference:180,cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:false}},layout:{padding:{bottom:30}}}})}
 
 /* ============ ATTACH RATES / NEXT BEST PRODUCT ============ */
 function attachRates(pool){const r={};PRODUCTS.forEach(a=>{const has=pool.filter(x=>x.owned.includes(a.k));r[a.k]={};PRODUCTS.forEach(b=>{if(a.k!==b.k)r[a.k][b.k]=has.length?has.filter(x=>x.owned.includes(b.k)).length/has.length:0})});return r}
-const AR=attachRates(ACCTS.filter(a=>a.status!=='No longer in business'));
-function nbp(a){let best=null;PRODUCTS.filter(p=>!a.owned.includes(p.k)&&!openOppFor(a,p.k)).forEach(p=>{a.owned.forEach(k=>{let s=AR[k][p.k]*(ADJ[k]&&ADJ[k].includes(p.k)?1.35:1);if(!best||s>best.s)best={k:p.k,s,from:k,rate:AR[k][p.k]}})});return best}
+const AR=attachRates(ACCTS.filter(a=>a.status!=='Historic'));
+function nbp(a){let best=null;a.owned.forEach(k=>(ADJ[k]||[]).forEach((t,i)=>{if(a.owned.includes(t)||openOppFor(a,t))return;const s=PK[t].gp/(i+1);if(!best||s>best.s)best={k:t,s,from:k,rate:AR[k][t]}}));return best}
 function openOppFor(a,k){return OPPS.find(o=>o.acc===a.id&&o.prod===k&&OPEN_STAGES.includes(o.stage))}
 ACCTS.forEach(a=>{a.nbp=nbp(a);a.yoy=a.lfy?(a.tfy-a.lfy)/a.lfy:null});
 
 /* ============ STATE / ROUTER ============ */
-const S={view:'dash',dash:'harry',pod:{pod:'Harry',period:'fq',type:'All'},am:{pod:'All',sector:'All'},ws:{pod:'All',sector:'All',status:'Live'},
+const S={view:'dash',dash:'harry',pod:{pod:'Harry',period:'fq',type:'All'},am:{pod:'All',sector:'All'},ws:{pod:'All',sector:'All',status:'Active'},
   acc:{lv:'all',owner:'All',pod:'All',status:'All',sector:'All',rating:'All',has:'All',miss:'All',trend:'All',q:'',sort:'tfy',dir:-1},rec:null,rep:null,rf:{show:'All',range:null,prod:'SOC'}};
 function go(v){S.view=v;render()}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{S.rec=null;S.rep=null;go(t.dataset.v)});
@@ -269,7 +287,7 @@ function podDash(podKey){
   const ind=R_.map(r=>({n:r.n,gp:sum(won({s:per.s,reps:[r.n],type:P.type})),t:r.mt*per.x}));
   // funnel 12m rolling
   const s12=addD(TODAY,-365);const cr=OPPS.filter(o=>reps.includes(o.owner)&&inRange(o.created,s12));
-  const q=cr.filter(o=>['Proposal/Bid Submitted','Negotiation','Closed Won','Closed Lost'].includes(o.stage));const w=cr.filter(o=>o.stage==='Closed Won');
+  const q=cr.filter(o=>['Proposal / Bid Submitted','Negotiation / Commercial Agreement','Closed Won','Closed Lost'].includes(o.stage));const w=cr.filter(o=>o.stage==='Closed Won');
   const fyWon=won({s:FY_START,reps});const split=TYPES.map(t=>sum(fyWon.filter(o=>o.type===t)));
   const nb=R_.map(r=>sum(fyWon.filter(o=>o.owner===r.n&&o.type==='New Business')));
   const openD=OPPS.filter(o=>reps.includes(o.owner)&&OPEN_STAGES.includes(o.stage)&&(P.type==='All'||o.type===P.type));
@@ -290,13 +308,13 @@ function podDash(podKey){
     <label>Period (individual charts)<select onchange="S.pod.period=this.value;render()">${Object.entries(PER).map(([k,v])=>`<option value="${k}" ${P.period===k?'selected':''}>${v.l}</option>`).join('')}</select></label>
     <label>Deal Type<select onchange="S.pod.type=this.value;render()">${['All',...TYPES].map(t=>`<option ${P.type===t?'selected':''}>${t}</option>`).join('')}</select></label>
     <div class="sep"></div><label>View dashboard as<select><option>Me (dynamic)</option><option>Pod Lead</option></select></label>
-    <span class="muted" style="font-size:11px;max-width:330px">One dashboard with a Pod filter replaces the per-person copies in Zoho. Fiscal year runs 1 Nov – 31 Oct.</span></div>
+    <span class="muted" style="font-size:11px;max-width:330px">One dashboard with a Pod filter (new User.Sales_Pod__c) replaces the per-person copies in Zoho. Periods use DXR fiscal-year fields (Nov–Oct), because the org fiscal year is January.</span></div>
   <div class="grid">
    ${cmp('s4','Pod GP Target – This Month',gaugeHTML('g_month',g[0].val,g[0].tgt),{tag:'z',rep:'rag'})}
    ${cmp('s4','Pod GP Target – This Fiscal Quarter',gaugeHTML('g_fq',g[1].val,g[1].tgt),{tag:'z',rep:'rag'})}
    ${cmp('s4','Pod GP Target – This Fiscal Year',gaugeHTML('g_fy',g[2].val,g[2].tgt),{tag:'z',rep:'rag'})}
    ${cmp('s7',`GP vs Target by Rep – ${per.l}`,`<div class="cv"><canvas id="c_ind"></canvas></div><div class="legend"><span><i style="background:#7526e3"></i>&gt;100%</span><span><i style="background:#2e844a"></i>90–99.99%</span><span><i style="background:#dd7a01"></i>50–89.99%</span><span><i style="background:#ba0517"></i>&lt;50%</span></div>`,{tag:'z',rep:'rag'})}
-   ${cmp('s5','Sales Pipeline Conversion % (12 Months Rolling)',`<div class="fun">${[['All Deals Created',cr.length],['Reached Proposal/Bid',q.length],['Deals Won',w.length]].map(([l,n],i)=>`<div class="row"><span class="lab">${l}</span><div style="flex:1"><div class="bar" style="width:${Math.max(n/f0*100,12)}%;background:${PAL[i]}">${n}</div></div><span class="cr">${i?pct(n/f0):''}</span></div>`).join('')}</div><p class="muted" style="font-size:11px;margin:10px 0 0">Win rate (won ÷ created): <b>${pct(w.length/f0)}</b></p>`,{tag:'z',rep:'newdeals'})}
+   ${cmp('s5','Sales Pipeline Conversion % (12 Months Rolling)',`<div class="fun">${[['All Deals Created',cr.length],['Reached Proposal / Bid',q.length],['Deals Won',w.length]].map(([l,n],i)=>`<div class="row"><span class="lab">${l}</span><div style="flex:1"><div class="bar" style="width:${Math.max(n/f0*100,12)}%;background:${PAL[i]}">${n}</div></div><span class="cr">${i?pct(n/f0):''}</span></div>`).join('')}</div><p class="muted" style="font-size:11px;margin:10px 0 0">Win rate (won ÷ created): <b>${pct(w.length/f0)}</b></p>`,{tag:'z',rep:'newdeals'})}
    ${cmp('s4','GP Split FY by Deal Type',`<div class="cv"><canvas id="c_split"></canvas></div>`,{tag:'z'})}
    ${cmp('s4','New Business Contributor – In-Year GP',`<div class="cv"><canvas id="c_nb"></canvas></div>`,{tag:'z'})}
    ${cmp('s4','Pipeline KPIs',`<div class="kpis"><div class="kpi">${openD.length}<small>Active live deals · ${gbpk(sum(openD))} GP</small></div><div class="kpi">${gbpk(aov)}<small>FY average GP order value</small></div><div class="kpi">${nbQ} <span class="delta ${nbQ>=nbLQ?'up':'dn'}" style="font-size:13px">${nbQ>=nbLQ?'▲':'▼'} ${nbLQ?pct((nbQ-nbLQ)/nbLQ):''}</span><small>New Biz deals created QTD vs last quarter</small></div></div>`,{tag:'z',rep:'newdeals'})}
@@ -320,10 +338,10 @@ function amDash(){
     mk('c_quad',{type:'scatter',data:{datasets:[{label:'Rep',data:quad.map(q=>({x:q.x,y:q.y,n:q.n})),backgroundColor:quad.map(q=>q.x>=mx&&q.y>=my?'#2e844a':q.x>=mx?'#0176d3':q.y>=my?'#dd7a01':'#ba0517'),pointRadius:8}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw.n+': '+gbpk(c.raw.x)+' GP · AOV '+gbpk(c.raw.y)}}},scales:{x:{title:{display:true,text:'FY GP Won'},ticks:{callback:v=>gbpk(v)}},y:{title:{display:true,text:'Average Order Value'},ticks:{callback:v=>gbpk(v)}}}},plugins:[{id:'q',afterDraw(ch){const{ctx,scales:{x,y}}=ch;ctx.save();ctx.strokeStyle='#c9c9c9';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(x.getPixelForValue(mx),y.top);ctx.lineTo(x.getPixelForValue(mx),y.bottom);ctx.moveTo(x.left,y.getPixelForValue(my));ctx.lineTo(x.right,y.getPixelForValue(my));ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#999';ctx.font='10px Inter';ctx.fillText('High volume · high value',x.right-120,y.top+12);ctx.fillText('Low volume · low value',x.left+6,y.bottom-6);ctx.restore()}}]});
     mk('c_lead',{type:'bar',data:{labels,datasets:[{label:'Open leads (excl. Junk)',data:leadsO,backgroundColor:'#5867e8'}]},options:{plugins:{legend:{display:false}}}});
     mk('c_own',{type:'bar',data:{labels,datasets:[{type:'bar',label:'Accounts',data:R_.map(r=>acc.filter(a=>a.owner===r.n).length),backgroundColor:'#0176d3',yAxisID:'y'},{type:'line',label:'Customer Lifetime Value',data:clvOwner,borderColor:'#fe9339',backgroundColor:'#fe9339',yAxisID:'y1'}]},options:{scales:{y1:{position:'right',grid:{display:false},ticks:{callback:v=>gbpk(v)}}},onClick:(e,el)=>{if(el[0]){S.acc=Object.assign(S.acc,{owner:labels[el[0].index],status:'All',lv:'custom'});S.view='accounts';render()}}}});
-    mk('c_dist',{type:'bar',data:{labels,datasets:[{label:'Live',data:byOwner(['Live']),backgroundColor:'#2e844a'},{label:'Lapsed',data:byOwner(['Lapsed']),backgroundColor:'#dd7a01'},{label:'Dormant',data:byOwner(['Dormant']),backgroundColor:'#a8a8a8'}]},options:{scales:{x:{stacked:true},y:{stacked:true}},onClick:(e,el)=>{if(el[0]){const st=['Live','Lapsed','Dormant'][el[0].datasetIndex];S.acc=Object.assign(S.acc,{owner:labels[el[0].index],status:st,lv:'custom'});S.view='accounts';render()}}}});
+    mk('c_dist',{type:'bar',data:{labels,datasets:[{label:'Active',data:byOwner(['Active']),backgroundColor:'#2e844a'},{label:'Lapsing',data:byOwner(['Lapsing']),backgroundColor:'#dd7a01'},{label:'Dormant',data:byOwner(['Dormant']),backgroundColor:'#a8a8a8'}]},options:{scales:{x:{stacked:true},y:{stacked:true}},onClick:(e,el)=>{if(el[0]){const st=['Active','Lapsing','Dormant'][el[0].datasetIndex];S.acc=Object.assign(S.acc,{owner:labels[el[0].index],status:st,lv:'custom'});S.view='accounts';render()}}}});
     R_.length&&['p1','p2'].forEach(p=>{const rr=REPS.filter(r=>r.pod===(p==='p1'?'Harry':'Sarah')&&reps.includes(r.n));mk('c_'+p,{type:'bar',data:{labels:rr.map(r=>r.n),datasets:[{label:'Target (FQ)',data:rr.map(r=>r.mt*3),backgroundColor:'#dddbda'},{label:'GP Won (FQ)',data:rr.map(r=>sum(won({s:FQ_START,reps:[r.n]}))),backgroundColor:rr.map(r=>RAG(sum(won({s:FQ_START,reps:[r.n]}))/(r.mt*3))[1])}]},options:{indexAxis:'y',scales:{x:{ticks:{callback:v=>gbpk(v)}}}}})});
   });
-  const liveL=acc.filter(a=>a.status==='Live'||a.status==='Lapsed');
+  const liveL=acc.filter(a=>a.status==='Active'||a.status==='Lapsing');
   return `<div class="fbar">
    <label>Pod<select onchange="S.am.pod=this.value;render()">${['All','Harry','Sarah'].map(p=>`<option value="${p}" ${A.pod===p?'selected':''}>${p==='All'?'All Account Management':PODS[p]}</option>`).join('')}</select></label>
    <label>Sector<select onchange="S.am.sector=this.value;render()">${['All',...SECTORS].map(s=>`<option ${A.sector===s?'selected':''}>${s}</option>`).join('')}</select></label>
@@ -335,14 +353,14 @@ function amDash(){
    ${A.pod!=='Sarah'?cmp(A.pod==='All'?'s6':'s12',"Account Mgt GP – Pod 1 (Harry) – This FQ",`<div class="cv short"><canvas id="c_p1"></canvas></div>`,{tag:'z',rep:'rag'}):''}
    ${A.pod!=='Harry'?cmp(A.pod==='All'?'s6':'s12',"Account Mgt GP – Pod 2 (Sarah) – This FQ",`<div class="cv short"><canvas id="c_p2"></canvas></div>`,{tag:'z',rep:'rag'}):''}
    ${cmp('s6','Sales Revenue vs AOV – This FY',`<div class="cv tall"><canvas id="c_quad"></canvas></div>`,{tag:'z'})}
-   ${cmp('s6','Account Distribution – Live / Lapsed / Dormant',`<div class="cv tall"><canvas id="c_dist"></canvas></div>`,{tag:'z',rep:'winback'})}
+   ${cmp('s6','Account Distribution – Active / Lapsing / Dormant',`<div class="cv tall"><canvas id="c_dist"></canvas></div>`,{tag:'z',rep:'winback'})}
    ${cmp('s6','All Account Ownership (count + lifetime value)',`<div class="cv"><canvas id="c_own"></canvas></div>`,{tag:'z'})}
    ${cmp('s6','Lead Pipeline Ownership',`<div class="cv"><canvas id="c_lead"></canvas></div>`,{tag:'z',rep:'zilead'})}
-   ${cmp('s12','Headline KPIs – This FY',`<div class="kpis"><div class="kpi">${gbpk(sum(fyWon))}<small>Gross profit this FY – all deals</small></div><div class="kpi">${gbpk(fyWon.length?sum(fyWon)/fyWon.length:0)}<small>FY average order value (inc. SOC)</small></div><div class="kpi">${fyWon.length}<small>Closed deals this FY</small></div><div class="kpi">${liveL.length}<small>Active spending accounts (Live + Lapsed)</small></div><div class="kpi">${gbpk(sum(acc.filter(a=>a.status==='Live'),'tfy'))}<small>Live account spend – current FY</small></div></div>`,{tag:'z'})}
+   ${cmp('s12','Headline KPIs – This FY',`<div class="kpis"><div class="kpi">${gbpk(sum(fyWon))}<small>Gross profit this FY – all deals</small></div><div class="kpi">${gbpk(fyWon.length?sum(fyWon)/fyWon.length:0)}<small>FY average order value (inc. SOC)</small></div><div class="kpi">${fyWon.length}<small>Closed deals this FY</small></div><div class="kpi">${liveL.length}<small>Active spending accounts (Active + Lapsing)</small></div><div class="kpi">${gbpk(sum(acc.filter(a=>a.status==='Active'),'tfy'))}<small>Active account spend – current FY</small></div></div>`,{tag:'z'})}
   </div>`;
 }
 
-function wsScope(){const W=S.ws;const reps=repsOf(W.pod);return ACCTS.filter(a=>reps.includes(a.owner)&&(W.sector==='All'||a.sector===W.sector)&&(W.status==='Live'?a.status==='Live':['Live','Lapsed'].includes(a.status)))}
+function wsScope(){const W=S.ws;const reps=repsOf(W.pod);return ACCTS.filter(a=>reps.includes(a.owner)&&(W.sector==='All'||a.sector===W.sector)&&(W.status==='Active'?a.status==='Active':['Active','Lapsing'].includes(a.status)))}
 function wsDash(){
   const W=S.ws;const acc=wsScope();const reps=repsOf(W.pod);
   const pen=PRODUCTS.map(p=>acc.length?acc.filter(a=>a.owned.includes(p.k)).length/acc.length:0);
@@ -353,53 +371,53 @@ function wsDash(){
   const cells=reps.map(r=>PRODUCTS.map(p=>acc.filter(a=>a.owner===r&&!a.owned.includes(p.k)).length));
   const mxc=Math.max(1,...cells.flat());
   const top=acc.filter(a=>a.nbp).sort((a,b)=>(b.nbp.s*PK[b.nbp.k].gp)-(a.nbp.s*PK[a.nbp.k].gp)).slice(0,14);
-  const openX=OPPS.filter(o=>OPEN_STAGES.includes(o.stage)&&o.type==='Existing - Upsell'&&reps.includes(o.owner));
-  after(()=>mk('c_pen',{type:'bar',data:{labels:PRODUCTS.map(p=>p.n),datasets:[{label:'% of accounts owning',data:pen.map(x=>+(x*100).toFixed(1)),backgroundColor:pen.map(x=>x<.2?'#ba0517':x<.4?'#dd7a01':'#2e844a')}]},options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'% penetration'}}},scales:{x:{max:100,ticks:{callback:v=>v+'%'}}},onClick:(e,el)=>{if(el[0]){S.acc=Object.assign(S.acc,{miss:PRODUCTS[el[0].index].k,owner:'All',pod:W.pod,status:W.status==='Live'?'Live':'All',lv:'custom'});S.view='accounts';render()}}}}));
+  const openX=OPPS.filter(o=>OPEN_STAGES.includes(o.stage)&&o.type==='Cross-Sell'&&reps.includes(o.owner));
+  after(()=>mk('c_pen',{type:'bar',data:{labels:PRODUCTS.map(p=>p.n),datasets:[{label:'% of accounts owning',data:pen.map(x=>+(x*100).toFixed(1)),backgroundColor:pen.map(x=>x<.2?'#ba0517':x<.4?'#dd7a01':'#2e844a')}]},options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'% penetration'}}},scales:{x:{max:100,ticks:{callback:v=>v+'%'}}},onClick:(e,el)=>{if(el[0]){S.acc=Object.assign(S.acc,{miss:PRODUCTS[el[0].index].k,owner:'All',pod:W.pod,status:W.status==='Active'?'Active':'All',lv:'custom'});S.view='accounts';render()}}}}));
   return `<div class="fbar">
    <label>Pod<select onchange="S.ws.pod=this.value;render()">${['All','Harry','Sarah'].map(p=>`<option value="${p}" ${W.pod===p?'selected':''}>${p==='All'?'All Account Management':PODS[p]}</option>`).join('')}</select></label>
    <label>Sector<select onchange="S.ws.sector=this.value;render()">${['All',...SECTORS].map(s=>`<option ${W.sector===s?'selected':''}>${s}</option>`).join('')}</select></label>
-   <label>Customer Status<select onchange="S.ws.status=this.value;render()"><option value="Live" ${W.status==='Live'?'selected':''}>Live only</option><option value="LL" ${W.status!=='Live'?'selected':''}>Live + Lapsed</option></select></label>
+   <label>DXR Relationship Status<select onchange="S.ws.status=this.value;render()"><option value="Active" ${W.status==='Active'?'selected':''}>Active only</option><option value="LL" ${W.status!=='Active'?'selected':''}>Active + Lapsing</option></select></label>
    <span class="muted" style="font-size:11px;max-width:420px">"Owned" comes from Closed Won opportunity products (it replaces the manual <i>Products Bought</i> multi-select in Zoho). Click any heatmap cell or bar to open the target account list.</span></div>
   <div class="grid">
    ${cmp('s12','Whitespace Headlines',`<div class="kpis"><div class="kpi">${acc.length}<small>Accounts in scope</small></div><div class="kpi">${avgP.toFixed(2)}<small>Avg products per account (of 10)</small></div><div class="kpi">${single} <span class="muted" style="font-size:13px">${pct(single/Math.max(acc.length,1))}</span><small>Single-product accounts</small></div><div class="kpi">${gbpk(pot)}<small>Next-best-product GP potential (1 product each)</small></div><div class="kpi">${gbpk(fullWs)}<small>Total theoretical whitespace GP</small></div><div class="kpi">${openX.length}<small>Open cross-sell opps · ${gbpk(sum(openX))}</small></div></div>`,{tag:'n'})}
    ${cmp('s5','Product Penetration – % of accounts owning',`<div class="cv tall"><canvas id="c_pen"></canvas></div>`,{tag:'n',rep:'ws'})}
-   ${cmp('s7','Whitespace Heatmap – accounts NOT owning each product, by owner',`<div class="scroll"><table class="hm"><tr><th></th>${PRODUCTS.map(p=>`<th>${p.n}</th>`).join('')}</tr>${reps.map((r,i)=>`<tr><td class="rh">${r}</td>${cells[i].map((c,j)=>`<td style="background:rgba(1,118,211,${(c/mxc*.85+.04).toFixed(2)});color:${c/mxc>.5?'#fff':'#181818'}" title="${r}: ${c} accounts without ${PRODUCTS[j].n}" onclick="S.acc=Object.assign(S.acc,{owner:'${r}',miss:'${PRODUCTS[j].k}',pod:'All',status:'${W.status==='Live'?'Live':'All'}',lv:'custom'});go('accounts')">${c}</td>`).join('')}</tr>`).join('')}</table></div><p class="muted" style="font-size:11px">Darker = more whitespace. SOC and EDR are the high-value gaps.</p>`,{tag:'n',rep:'ws'})}
-   ${cmp('s12','Next Best Product – top cross-sell targets',`<div class="scroll"><table><tr><th>Account</th><th>Owner</th><th>Sector</th><th>Owns</th><th>Next best product</th><th>Why</th><th class="num">Est. GP</th><th class="num">Current FY spend</th></tr>${top.map(a=>`<tr class="click" onclick="openRec('${a.id}')"><td><a>${esc(a.name)}</a></td><td>${a.owner}</td><td>${a.sector}</td><td>${a.owned.map(k=>`<span class="pp">${PK[k].n}</span>`).join('')}</td><td><span class="pp nbp">★ ${PK[a.nbp.k].n}</span></td><td class="muted">${pct(a.nbp.rate)} of ${PK[a.nbp.from].n} customers also buy it</td><td class="num">${gbp(PK[a.nbp.k].gp)}</td><td class="num">${gbp(a.tfy)}</td></tr>`).join('')}</table></div>`,{tag:'n',rep:'ws'})}
+   ${cmp('s7','Whitespace Heatmap – accounts NOT owning each product, by owner',`<div class="scroll"><table class="hm"><tr><th></th>${PRODUCTS.map(p=>`<th>${p.n}</th>`).join('')}</tr>${reps.map((r,i)=>`<tr><td class="rh">${r}</td>${cells[i].map((c,j)=>`<td style="background:rgba(1,118,211,${(c/mxc*.85+.04).toFixed(2)});color:${c/mxc>.5?'#fff':'#181818'}" title="${r}: ${c} accounts without ${PRODUCTS[j].n}" onclick="S.acc=Object.assign(S.acc,{owner:'${r}',miss:'${PRODUCTS[j].k}',pod:'All',status:'${W.status==='Active'?'Active':'All'}',lv:'custom'});go('accounts')">${c}</td>`).join('')}</tr>`).join('')}</table></div><p class="muted" style="font-size:11px">Darker = more whitespace. SOC and EDR are the high-value gaps.</p>`,{tag:'n',rep:'ws'})}
+   ${cmp('s12','Next Best Product – top cross-sell targets',`<div class="scroll"><table><tr><th>Account</th><th>Owner</th><th>Sector</th><th>Owns</th><th>Next best product</th><th>Why</th><th class="num">Est. GP</th><th class="num">Current FY spend</th></tr>${top.map(a=>`<tr class="click" onclick="openRec('${a.id}')"><td><a>${esc(a.name)}</a></td><td>${a.owner}</td><td>${a.sector}</td><td>${a.owned.map(k=>`<span class="pp">${PK[k].n}</span>`).join('')}</td><td><span class="pp nbp">★ ${PK[a.nbp.k].n}</span></td><td class="muted">Rule: owns ${PK[a.nbp.from].n} → offer ${PK[a.nbp.k].n}</td><td class="num">${gbp(PK[a.nbp.k].gp)}</td><td class="num">${gbp(a.tfy)}</td></tr>`).join('')}</table></div>`,{tag:'n',rep:'ws'})}
   </div>`;
 }
 
 function healthDash(){
   const W=S.ws;const reps=repsOf(W.pod);const acc=ACCTS.filter(a=>reps.includes(a.owner)&&(W.sector==='All'||a.sector===W.sector));
-  const liveA=acc.filter(a=>a.status==='Live'&&a.lfy>0);
+  const liveA=acc.filter(a=>a.status==='Active'&&a.lfy>0);
   const dec=liveA.filter(a=>a.yoy<-.2).sort((a,b)=>a.yoy-b.yoy).slice(0,10);
   const grow=liveA.filter(a=>a.yoy>.2).sort((a,b)=>b.yoy-a.yoy).slice(0,10);
-  const lapsed=acc.filter(a=>a.status==='Lapsed').sort((a,b)=>b.lfy-a.lfy);
-  const ren=OPPS.filter(o=>reps.includes(o.owner)&&o.type==='Existing Renewal'&&OPEN_STAGES.includes(o.stage));
-  const tfy=sum(acc.filter(a=>a.status==='Live'),'tfy'),lfy=sum(acc.filter(a=>a.status==='Live'),'lfy');
+  const lapsed=acc.filter(a=>a.status==='Lapsing').sort((a,b)=>b.lfy-a.lfy);
+  const ren=OPPS.filter(o=>reps.includes(o.owner)&&o.type==='Renewal'&&OPEN_STAGES.includes(o.stage));
+  const tfy=sum(acc.filter(a=>a.status==='Active'),'tfy'),lfy=sum(acc.filter(a=>a.status==='Active'),'lfy');
   const bands=[['Growing >20%',liveA.filter(a=>a.yoy>.2).length,'#2e844a'],['Flat ±20%',liveA.filter(a=>a.yoy>=-.2&&a.yoy<=.2).length,'#0176d3'],['Declining >20%',liveA.filter(a=>a.yoy<-.2).length,'#ba0517']];
-  after(()=>{mk('c_band',{type:'doughnut',data:{labels:bands.map(b=>b[0]),datasets:[{data:bands.map(b=>b[1]),backgroundColor:bands.map(b=>b[2])}]},options:{plugins:{legend:{position:'right'}},onClick:(e,el)=>{if(el[0]){S.acc=Object.assign(S.acc,{trend:['up','flat','down'][el[0].index],status:'Live',owner:'All',pod:W.pod,lv:'custom'});go('accounts')}}}});
+  after(()=>{mk('c_band',{type:'doughnut',data:{labels:bands.map(b=>b[0]),datasets:[{data:bands.map(b=>b[1]),backgroundColor:bands.map(b=>b[2])}]},options:{plugins:{legend:{position:'right'}},onClick:(e,el)=>{if(el[0]){S.acc=Object.assign(S.acc,{trend:['up','flat','down'][el[0].index],status:'Active',owner:'All',pod:W.pod,lv:'custom'});go('accounts')}}}});
     const labels=REPS.filter(r=>reps.includes(r.n)).map(r=>r.n);
-    mk('c_yoy',{type:'bar',data:{labels,datasets:[{label:'Previous FY',data:labels.map(n=>sum(acc.filter(a=>a.owner===n&&a.status==='Live'),'lfy')),backgroundColor:'#c9c9c9'},{label:'Current FY',data:labels.map(n=>sum(acc.filter(a=>a.owner===n&&a.status==='Live'),'tfy')),backgroundColor:'#0176d3'}]},options:{scales:{y:{ticks:{callback:v=>gbpk(v)}}}}})});
+    mk('c_yoy',{type:'bar',data:{labels,datasets:[{label:'Previous FY',data:labels.map(n=>sum(acc.filter(a=>a.owner===n&&a.status==='Active'),'lfy')),backgroundColor:'#c9c9c9'},{label:'Current FY',data:labels.map(n=>sum(acc.filter(a=>a.owner===n&&a.status==='Active'),'tfy')),backgroundColor:'#0176d3'}]},options:{scales:{y:{ticks:{callback:v=>gbpk(v)}}}}})});
   const row=a=>`<tr class="click" onclick="openRec('${a.id}')"><td><a>${esc(a.name)}</a></td><td>${a.owner}</td><td class="num">${gbp(a.lfy)}</td><td class="num">${gbp(a.tfy)}</td><td class="num"><span class="delta ${a.yoy>=0?'up':'dn'}">${a.yoy>=0?'▲':'▼'} ${pct(Math.abs(a.yoy))}</span></td></tr>`;
   return `<div class="fbar">
    <label>Pod<select onchange="S.ws.pod=this.value;render()">${['All','Harry','Sarah'].map(p=>`<option value="${p}" ${W.pod===p?'selected':''}>${p==='All'?'All Account Management':PODS[p]}</option>`).join('')}</select></label>
    <label>Sector<select onchange="S.ws.sector=this.value;render()">${['All',...SECTORS].map(s=>`<option ${W.sector===s?'selected':''}>${s}</option>`).join('')}</select></label>
    <span class="muted" style="font-size:11px;max-width:460px">Spend comes from the Business Central invoice feed (Current / Previous FY), so account managers can see which customers are growing or shrinking before renewal.</span></div>
   <div class="grid">
-   ${cmp('s12','Retention Headlines',`<div class="kpis"><div class="kpi">${gbpk(tfy)}<small>Live account spend – current FY</small></div><div class="kpi">${gbpk(lfy)} <span class="delta ${tfy>=lfy?'up':'dn'}" style="font-size:13px">${tfy>=lfy?'▲':'▼'} ${pct(Math.abs((tfy-lfy)/Math.max(lfy,1)))}</span><small>Previous FY (same accounts)</small></div><div class="kpi">${bands[2][1]}<small>Live accounts declining &gt;20%</small></div><div class="kpi">${lapsed.length}<small>Lapsed accounts · ${gbpk(sum(lapsed,'lfy'))} last FY</small></div><div class="kpi">${ren.length}<small>Open renewals · ${gbpk(sum(ren))}</small></div></div>`,{tag:'n'})}
-   ${cmp('s4','Spend Trend Bands (Live accounts)',`<div class="cv"><canvas id="c_band"></canvas></div>`,{tag:'n',rep:'movers'})}
+   ${cmp('s12','Retention Headlines',`<div class="kpis"><div class="kpi">${gbpk(tfy)}<small>Active account spend – current FY</small></div><div class="kpi">${gbpk(lfy)} <span class="delta ${tfy>=lfy?'up':'dn'}" style="font-size:13px">${tfy>=lfy?'▲':'▼'} ${pct(Math.abs((tfy-lfy)/Math.max(lfy,1)))}</span><small>Previous FY (same accounts)</small></div><div class="kpi">${bands[2][1]}<small>Active accounts declining &gt;20%</small></div><div class="kpi">${lapsed.length}<small>Lapsing accounts · ${gbpk(sum(lapsed,'lfy'))} last FY</small></div><div class="kpi">${ren.length}<small>Open renewals · ${gbpk(sum(ren))}</small></div></div>`,{tag:'n'})}
+   ${cmp('s4','Spend Trend Bands (Active accounts)',`<div class="cv"><canvas id="c_band"></canvas></div>`,{tag:'n',rep:'movers'})}
    ${cmp('s8','Current vs Previous FY Spend by Owner',`<div class="cv"><canvas id="c_yoy"></canvas></div>`,{tag:'n',rep:'movers'})}
    ${cmp('s6','At Risk – biggest decliners',`<table><tr><th>Account</th><th>Owner</th><th class="num">Prev FY</th><th class="num">Current FY</th><th class="num">YoY</th></tr>${dec.map(row).join('')}</table>`,{tag:'n',rep:'movers'})}
    ${cmp('s6','Growth – biggest risers',`<table><tr><th>Account</th><th>Owner</th><th class="num">Prev FY</th><th class="num">Current FY</th><th class="num">YoY</th></tr>${grow.map(row).join('')}</table>`,{tag:'n',rep:'movers'})}
-   ${cmp('s12','Win-back – Lapsed accounts by last-FY spend',`<div class="scroll"><table><tr><th>Account</th><th>Owner</th><th>Sector</th><th>Previously bought</th><th class="num">Prev FY spend</th><th class="num">Lifetime value</th></tr>${lapsed.slice(0,12).map(a=>`<tr class="click" onclick="openRec('${a.id}')"><td><a>${esc(a.name)}</a></td><td>${a.owner}</td><td>${a.sector}</td><td>${a.owned.map(k=>`<span class="pp">${PK[k].n}</span>`).join('')}</td><td class="num">${gbp(a.lfy)}</td><td class="num">${gbp(a.clv)}</td></tr>`).join('')}</table></div>`,{tag:'n',rep:'winback'})}
+   ${cmp('s12','Win-back – Lapsing accounts by last-FY spend',`<div class="scroll"><table><tr><th>Account</th><th>Owner</th><th>Sector</th><th>Previously bought</th><th class="num">Prev FY spend</th><th class="num">Lifetime value</th></tr>${lapsed.slice(0,12).map(a=>`<tr class="click" onclick="openRec('${a.id}')"><td><a>${esc(a.name)}</a></td><td>${a.owner}</td><td>${a.sector}</td><td>${a.owned.map(k=>`<span class="pp">${PK[k].n}</span>`).join('')}</td><td class="num">${gbp(a.lfy)}</td><td class="num">${gbp(a.clv)}</td></tr>`).join('')}</table></div>`,{tag:'n',rep:'winback'})}
   </div>`;
 }
 
 /* ============ ACCOUNTS LIST VIEW ============ */
-const LVIEWS={all:'All Accounts',my:'My Accounts (Harry T.)',live:'Live Customers',lapsed:'Lapsed – Win-back',dormant:'Dormant',single:'Single-Product Customers',nosoc:'Whitespace: Live without SOC',decl:'Declining Spend (>20%)',custom:'Custom filter (from dashboard)'};
+const LVIEWS={all:'All Accounts',my:'My Accounts (Harry T.)',live:'Active Customers',lapsed:'Lapsing – Win-back',dormant:'Dormant',single:'Single-Product Customers',nosoc:'Whitespace: Active without SOC',decl:'Declining Spend (>20%)',custom:'Custom filter (from dashboard)'};
 function applyLV(k){const A=S.acc;Object.assign(A,{lv:k,owner:'All',pod:'All',status:'All',sector:'All',rating:'All',has:'All',miss:'All',trend:'All'});
-  if(k==='my')A.owner='Harry T.';if(k==='live')A.status='Live';if(k==='lapsed')A.status='Lapsed';if(k==='dormant')A.status='Dormant';
-  if(k==='single'){A.status='Live';A.trend='single'}if(k==='nosoc'){A.status='Live';A.miss='SOC'}if(k==='decl'){A.status='Live';A.trend='down'}render()}
+  if(k==='my')A.owner='Harry T.';if(k==='live')A.status='Active';if(k==='lapsed')A.status='Lapsing';if(k==='dormant')A.status='Dormant';
+  if(k==='single'){A.status='Active';A.trend='single'}if(k==='nosoc'){A.status='Active';A.miss='SOC'}if(k==='decl'){A.status='Active';A.trend='down'}render()}
 function accRows(){const A=S.acc;let r=ACCTS.filter(a=>(A.owner==='All'||a.owner===A.owner)&&(A.pod==='All'||repPod(a.owner)===A.pod)&&(A.status==='All'||a.status===A.status)&&(A.sector==='All'||a.sector===A.sector)&&(A.rating==='All'||a.rating===A.rating)&&(A.has==='All'||a.owned.includes(A.has))&&(A.miss==='All'||!a.owned.includes(A.miss))
   &&(A.trend==='All'||(A.trend==='up'&&a.yoy>.2)||(A.trend==='down'&&a.yoy!==null&&a.yoy<-.2)||(A.trend==='flat'&&a.yoy!==null&&a.yoy>=-.2&&a.yoy<=.2)||(A.trend==='single'&&a.owned.length===1))
   &&(!A.q||a.name.toLowerCase().includes(A.q.toLowerCase())));
@@ -410,12 +428,12 @@ function accountList(){const A=S.acc;const rows=accRows();
   const th=(k,l,n)=>`<th class="sort ${n?'num':''}" onclick="srt('${k}')">${l}${A.sort===k?(A.dir>0?' ▲':' ▼'):''}</th>`;
   return `<div class="ph"><div class="ph-t"><div class="ico acc">▤</div><div><small>Accounts</small><h1><select style="font-size:16px;font-weight:700;border:none;padding:0" onchange="applyLV(this.value)">${Object.entries(LVIEWS).map(([k,v])=>`<option value="${k}" ${A.lv===k?'selected':''}>${v}</option>`).join('')}</select></h1><small>${rows.length} items · Sorted by ${A.sort} · Filtered by ${[A.owner!=='All'&&'Owner',A.pod!=='All'&&'Pod',A.status!=='All'&&'Status',A.sector!=='All'&&'Sector',A.has!=='All'&&'Owns',A.miss!=='All'&&'Missing',A.trend!=='All'&&'Trend'].filter(Boolean).join(', ')||'none'}</small></div></div>
    <div style="display:flex;gap:8px"><input type="text" placeholder="Search this list…" value="${esc(A.q)}" onchange="S.acc.q=this.value;render()"><button class="btn">New</button></div></div>
-  <div class="lv"><div class="cmp"><div class="scroll" style="max-height:640px"><table><tr>${th('name','Account Name')}${th('owner','Owner')}${th('status','Customer Status')}<th>Sector</th><th>Products (owned · <span style="color:#014486">open opp</span> · <span style="color:#8c4b02">★ next best</span>)</th>${th('np','#',1)}${th('lfy','Prev FY',1)}${th('tfy','Current FY',1)}${th('yoy','YoY',1)}</tr>
+  <div class="lv"><div class="cmp"><div class="scroll" style="max-height:640px"><table><tr>${th('name','Account Name')}${th('owner','Owner')}${th('status','DXR Relationship Status')}<th>Sector</th><th>Products (owned · <span style="color:#014486">open opp</span> · <span style="color:#8c4b02">★ next best</span>)</th>${th('np','#',1)}${th('lfy','Prev FY',1)}${th('tfy','Current FY',1)}${th('yoy','YoY',1)}</tr>
    ${rows.map(a=>`<tr class="click" onclick="openRec('${a.id}')"><td><a>${esc(a.name)}</a></td><td>${a.owner}</td><td>${a.status}</td><td class="muted">${a.sector}</td><td>${a.owned.map(k=>`<span class="pp">${PK[k].n}</span>`).join('')}${PRODUCTS.filter(p=>openOppFor(a,p.k)).map(p=>`<span class="pp opp">${p.n}</span>`).join('')}${a.nbp?`<span class="pp nbp">★ ${PK[a.nbp.k].n}</span>`:''}</td><td class="num">${a.owned.length}</td><td class="num">${gbp(a.lfy)}</td><td class="num">${gbp(a.tfy)}</td><td class="num">${a.yoy===null?'—':`<span class="delta ${a.yoy>=0?'up':'dn'}">${pct(a.yoy)}</span>`}</td></tr>`).join('')}</table></div></div>
   <div class="fpanel"><h3>Filters</h3>
    ${sel('pod',[['All','All'],['Harry',"Harry's Pod"],['Sarah',"Sarah's Pod"]],'Pod')}
    ${sel('owner',['All',...REPS.map(r=>r.n)],'Account Owner')}
-   ${sel('status',['All','Live','Lapsed','Dormant','No longer in business'],'Customer Status')}
+   ${sel('status',['All','Active','Lapsing','Dormant','Historic'],'DXR Relationship Status')}
    ${sel('sector',['All',...SECTORS],'Sector')}
    ${sel('rating',['All','A - Awesome','B - Basic',"C - Can't Do",'D - Dump'],'Account Rating')}
    ${sel('has',[['All','Any'],...PRODUCTS.map(p=>[p.k,p.n])],'Owns product')}
@@ -432,13 +450,13 @@ function recordPage(){const a=ACC[S.rec];const opps=OPPS.filter(o=>o.acc===a.id)
     const peer=a.owned.length?Math.max(...a.owned.map(k=>AR[k][p.k]||0)):0;
     if(own)return `<div class="tile own"><b>${p.n}</b><span class="st" style="color:var(--own)">✔ Customer</span><small>Last won ${(()=>{const w=opps.find(o=>o.prod===p.k&&o.stage==='Closed Won');return w?dfmt(w.close):'before FY25'})()}</small></div>`;
     if(op)return `<div class="tile opp"><b>${p.n}</b><span class="st" style="color:var(--opp)">◔ ${op.stage}</span><small>${gbp(op.gp)} · closes ${dfmt(op.close)}</small></div>`;
-    return `<div class="tile ${nb?'nbp':'gap'}"><b>${p.n}</b><span class="st" style="color:${nb?'#8c4b02':'#888'}">${nb?'★ Next best product':'Whitespace'}</span><small>${pct(peer)} of similar customers own it · ~${gbpk(p.gp)} GP</small><a onclick="toast('Mock: would open New Opportunity pre-filled with ${p.n}')" style="font-size:11px">+ Create Opportunity</a></div>`}).join('');
+    return `<div class="tile ${nb?'nbp':'gap'}"><b>${p.n}</b><span class="st" style="color:${nb?'#8c4b02':'#888'}">${nb?'★ Next best product':'Whitespace'}</span><small>${nb?'Cross-sell rule from '+PK[a.nbp.from].n+' · ':''}~${gbpk(p.gp)} typical deal</small><a onclick="toast('Mock: would open New Opportunity pre-filled with ${p.n}')" style="font-size:11px">+ Create Opportunity</a></div>`}).join('');
   return `<div style="margin-bottom:8px"><a onclick="S.rec=null;render()">← Back to list view</a></div>
   <div class="rec-h"><div class="ph-t"><div class="ico acc">▤</div><div><small>Account</small><h1 style="margin:0;font-size:18px">${esc(a.name)}</h1></div></div>
-   <div class="hl"><div><small>Account Owner</small>${a.owner} · ${PODS[repPod(a.owner)]}</div><div><small>Customer Status</small>${a.status}</div><div><small>Account Rating</small>${a.rating}</div><div><small>Sector</small>${a.sector}</div><div><small>Current FY Spend</small>${gbp(a.tfy)}</div><div><small>Previous FY Spend</small>${gbp(a.lfy)}</div><div><small>Customer Lifetime Value</small>${gbp(a.clv)}</div><div><small>Products</small>${a.owned.length} of ${PRODUCTS.length}</div></div></div>
+   <div class="hl"><div><small>Account Owner</small>${a.owner} · ${PODS[repPod(a.owner)]}</div><div><small>DXR Relationship Status</small>${a.status}</div><div><small>Account Rating</small>${a.rating}</div><div><small>Sector</small>${a.sector}</div><div><small>Current FY Spend</small>${gbp(a.tfy)}</div><div><small>Previous FY Spend</small>${gbp(a.lfy)}</div><div><small>Customer Lifetime Value</small>${gbp(a.clv)}</div><div><small>Products</small>${a.owned.length} of ${PRODUCTS.length}</div></div></div>
   <div class="grid">
    ${cmp('s8','Product Whitespace',`<div class="tiles">${tiles}</div><div class="legend"><span><i style="background:#91c9a4"></i>Owned (Closed Won)</span><span><i style="background:#8fc2ea"></i>Open opportunity</span><span><i style="background:#f9a94b"></i>Next best product</span><span><i style="background:#ddd"></i>Whitespace</span></div>`,{tag:'n'})}
-   ${cmp('s4','Spend – Current vs Previous FY',`<div class="cv"><canvas id="c_rec"></canvas></div>${a.nbp?`<div class="note"><b>Suggested next step:</b> ${pct(a.nbp.rate)} of ${PK[a.nbp.from].n} customers also buy <b>${PK[a.nbp.k].n}</b>. Book a review with the account.</div>`:''}`,{tag:'n'})}
+   ${cmp('s4','Spend – Current vs Previous FY',`<div class="cv"><canvas id="c_rec"></canvas></div>${a.nbp?`<div class="note"><b>Suggested next step:</b> the account owns ${PK[a.nbp.from].n}, so the cross-sell rule suggests <b>${PK[a.nbp.k].n}</b>. Book a review with the account.</div>`:''}`,{tag:'n'})}
    ${cmp('s12',`Opportunities (${opps.length})`,`<div class="scroll"><table><tr><th>Opportunity</th><th>Product</th><th>Type</th><th>Stage</th><th>Owner</th><th class="num">GP</th><th>Close Date</th></tr>${opps.map(o=>`<tr><td>${esc(o.name)}</td><td>${PK[o.prod].n}</td><td>${o.type}</td><td>${o.stage}</td><td>${o.owner}</td><td class="num">${gbp(o.gp)}</td><td>${dfmt(o.close)}</td></tr>`).join('')||'<tr><td colspan=7 class="muted">No opportunities</td></tr>'}</table></div>`)}
   </div>`}
 
@@ -447,48 +465,48 @@ const RANGES={today:['Today',TODAY,TODAY],week:['This Week',WK_START,TODAY],mont
 const showReps=()=>S.rf.show==='All'?REPS.map(r=>r.n):S.rf.show==='Me'?['Harry T.']:repsOf(S.rf.show);
 const wkOf=d=>{const x=new Date(d);const day=(x.getDay()+6)%7;return addD(new Date(x.getFullYear(),x.getMonth(),x.getDate()),-day)};
 const RDEF={
- rag:{name:'Individual Sales Performance (RAG)',z:'Individual Sales Performance -Purple: > 100%, Green: 90% – …',desc:'GP won vs target per rep. Purple >100%, Green 90–99.99%, Amber 50–89.99%, Red <50%.',folder:'Xypher Sales Reports',type:'Opportunities with Sales Targets',by:'Rick Jones',range:'fq',
+ rag:{fz:['fix','GP field and per-rep targets needed. Standard conditional formatting has only 3 colour bands, so Purple (>100%) comes from a band-label formula on Sales_Target__c.'],name:'Individual Sales Performance (RAG)',z:'Individual Sales Performance -Purple: > 100%, Green: 90% – …',desc:'GP won vs target per rep. Purple >100%, Green 90–99.99%, Amber 50–89.99%, Red <50%.',folder:'Xypher Sales Reports',type:'Opportunities with Sales Targets',by:'Rick Jones',range:'fq',
   run(s,e){const rows=REPS.filter(r=>showReps().includes(r.n)).map(r=>{const gp=sum(won({s,e,reps:[r.n]}));const months=Math.max(1,Math.round((e-s)/2.63e9));const t=r.mt*months;return {rep:r.n,pod:PODS[r.pod],t,gp,p:gp/t}});
    return {cols:[['rep','Rep'],['pod','Pod'],['t','Target','gbp'],['gp','GP Won','gbp'],['p','Attainment','rag']],rows,chart:{type:'bar',labels:rows.map(r=>r.rep),data:rows.map(r=>Math.round(r.p*100)),colors:rows.map(r=>RAG(r.p)[1]),suffix:'%'},note:'Colours use Salesforce conditional formatting on the Attainment % summary formula: 4 bands, set once and reused on every dashboard.'}}},
- newdeals:{name:'Weekly New Deals Created',z:'Weekly New Deals Created Report',desc:'Opportunities created per week, grouped by week and owner.',folder:'Xypher Sales Reports',type:'Opportunities',by:'Rick Jones',range:'l8w',
+ newdeals:{fz:['ok','Standard Opportunity report grouped by Created Date (week) and owner.'],name:'Weekly New Deals Created',z:'Weekly New Deals Created Report',desc:'Opportunities created per week, grouped by week and owner.',folder:'Xypher Sales Reports',type:'Opportunities',by:'Rick Jones',range:'l8w',
   run(s,e){const rows=OPPS.filter(o=>showReps().includes(o.owner)&&inRange(o.created,s,e)).map(o=>({wk:dfmt(wkOf(o.created)),wkd:wkOf(o.created),owner:o.owner,name:o.name,type:o.type,stage:o.stage,gp:o.gp})).sort((a,b)=>b.wkd-a.wkd);
    const wks=[...new Set(rows.map(r=>r.wk))].reverse();return {group:'wk',cols:[['owner','Owner'],['name','Opportunity'],['type','Type'],['stage','Stage'],['gp','GP','gbp']],rows,chart:{type:'bar',labels:wks,data:wks.map(w=>rows.filter(r=>r.wk===w).length)}}}},
- mtgcreated:{name:'Weekly Meetings Created',z:'Weekly Meeting Created NEW',desc:'Meetings (Events) created each week by rep.',folder:'Xypher Sales Reports',type:'Activities (Events)',by:'David Ollerhead',range:'l8w',
+ mtgcreated:{fz:['ok','Standard Activities report on Events.'],name:'Weekly Meetings Created',z:'Weekly Meeting Created NEW',desc:'Meetings (Events) created each week by rep.',folder:'Xypher Sales Reports',type:'Activities (Events)',by:'David Ollerhead',range:'l8w',
   run(s,e){const reps=showReps();const m=MEETINGS.filter(x=>reps.includes(x.owner)&&inRange(x.date,s,e));const wks=[...new Set(m.map(x=>+wkOf(x.date)))].sort();
    const rows=reps.map(r=>{const o={rep:r};wks.forEach(w=>o['w'+w]=m.filter(x=>x.owner===r&&+wkOf(x.date)===w).length);o.tot=m.filter(x=>x.owner===r).length;return o});
    return {matrix:true,cols:[['rep','Rep'],...wks.map(w=>['w'+w,'w/c '+new Date(w).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}),'num']),['tot','Total','num']],rows,chart:{type:'line',labels:wks.map(w=>new Date(w).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})),data:wks.map(w=>m.filter(x=>+wkOf(x.date)===w).length)}}}},
- mtgtype:{name:'Weekly Meetings by Type',z:'Weekly Meetings by Type',desc:'Meetings by type (New / Existing / Sequencing / Inbound).',folder:'Xypher Sales Reports',type:'Activities (Events)',by:'David Ollerhead',range:'fq',
+ mtgtype:{fz:['fix','Needs Meeting_Type__c on Event, backfilled from Zoho Meeting_Type.'],name:'Weekly Meetings by Type',z:'Weekly Meetings by Type',desc:'Meetings by type (New / Existing / Sequencing / Inbound).',folder:'Xypher Sales Reports',type:'Activities (Events)',by:'David Ollerhead',range:'fq',
   run(s,e){const reps=showReps();const m=MEETINGS.filter(x=>reps.includes(x.owner)&&inRange(x.date,s,e));const rows=reps.map(r=>{const o={rep:r};MTYPES.forEach(t=>o[t]=m.filter(x=>x.owner===r&&x.type===t).length);o.tot=m.filter(x=>x.owner===r).length;return o});
    return {matrix:true,cols:[['rep','Rep'],...MTYPES.map(t=>[t,t,'num']),['tot','Total','num']],rows,chart:{type:'bar',labels:MTYPES,data:MTYPES.map(t=>m.filter(x=>x.type===t).length)}}}},
- thisweek:{name:'This Week Sales',z:'This Week Sales DO NOT TOUCH',desc:'Closed Won this week. Locked report (in Salesforce, lock it with folder access rather than a name).',folder:'Xypher Sales Reports (read-only)',type:'Opportunities',by:'Rick Jones',range:'week',
+ thisweek:{fz:['ok','Standard Opportunity report (Amount). Lock it with a read-only folder. GP column needs the GP field.'],name:'This Week Sales',z:'This Week Sales DO NOT TOUCH',desc:'Closed Won this week. Locked report (in Salesforce, lock it with folder access rather than a name).',folder:'Xypher Sales Reports (read-only)',type:'Opportunities',by:'Rick Jones',range:'week',
   run(s,e){const rows=won({s,e,reps:showReps()}).map(o=>({owner:o.owner,name:o.name,type:o.type,gp:o.gp,close:dfmt(o.close)}));return {group:'owner',cols:[['name','Opportunity'],['type','Type'],['close','Close Date'],['gp','GP','gbp']],rows}}},
- lost:{name:'Closed Lost – This Quarter',z:'Closed Lost Report',desc:'All Closed Lost opportunities in the period, with loss reason and competitor.',folder:'Xypher Sales Reports',type:'Opportunities',by:'Rick Jones',range:'fq',
+ lost:{fz:['ok','Standard: Loss_Reason__c already exists (Price / Lost to Competitor / No Budget / No Decision / Other).'],name:'Closed Lost – This Quarter',z:'Closed Lost Report',desc:'All Closed Lost opportunities in the period, with loss reason and competitor.',folder:'Xypher Sales Reports',type:'Opportunities',by:'Rick Jones',range:'fq',
   run(s,e){const rows=OPPS.filter(o=>o.stage==='Closed Lost'&&showReps().includes(o.owner)&&inRange(o.close,s,e)).map(o=>({reason:o.reason,owner:o.owner,name:o.name,comp:o.comp,gp:o.gp,close:dfmt(o.close)}));const rs=[...new Set(rows.map(r=>r.reason))];
-   return {group:'reason',cols:[['name','Opportunity'],['owner','Owner'],['comp','Competitor'],['close','Close Date'],['gp','GP','gbp']],rows,chart:{type:'doughnut',labels:rs,data:rs.map(x=>rows.filter(r=>r.reason===x).length)}}}},
- calls:{name:'All Calls Today',z:'All Calls Today',desc:'Dials, connects and talk time per rep today.',folder:'Xypher Sales Reports',type:'Tasks (Type = Call)',by:'Rick Jones',range:'today',
+   return {group:'reason',cols:[['name','Opportunity'],['owner','Owner'],['close','Close Date'],['gp','GP','gbp']],rows,chart:{type:'doughnut',labels:rs,data:rs.map(x=>rows.filter(r=>r.reason===x).length)}}}},
+ calls:{fz:['fix','Report is standard, but it stays empty until a dialler logs Call Tasks with Call_Disposition__c.'],name:'All Calls Today',z:'All Calls Today',desc:'Dials, connects and talk time per rep today.',folder:'Xypher Sales Reports',type:'Tasks (Type = Call)',by:'Rick Jones',range:'today',
   run(){const rows=CALLS_TODAY.filter(c=>showReps().includes(c.owner)).map(c=>({rep:c.owner,dials:c.dials,connects:c.connects,cr:c.connects/c.dials,talk:c.talk}));return {matrix:true,cols:[['rep','Rep'],['dials','Dials','num'],['connects','Connects','num'],['cr','Connect Rate','pct'],['talk','Talk Time (mins)','num']],rows,chart:{type:'bar',labels:rows.map(r=>r.rep),data:rows.map(r=>r.dials)},note:'Salesforce needs the dialler to log Tasks with Type = Call and a disposition. The date range is fixed to TODAY.'}}},
- ziwon:{name:'ZoomInfo – Deals Closed Won',z:'ZoomInfo_Deals_Closed WON',desc:'Closed Won opportunities where Lead Source = ZoomInfo.',folder:'Xypher Sales Reports',type:'Opportunities',by:'Laura Galyer',range:'fy',
+ ziwon:{fz:['fix','LeadSource is blank on DXR deals. ZoomInfo sits in Zoho_Source_Detail__c (142 deals) and needs mapping to LeadSource.'],name:'ZoomInfo – Deals Closed Won',z:'ZoomInfo_Deals_Closed WON',desc:'Closed Won opportunities where Lead Source = ZoomInfo.',folder:'Xypher Sales Reports',type:'Opportunities',by:'Laura Galyer',range:'fy',
   run(s,e){const rows=won({s,e,reps:showReps()}).filter(o=>o.src==='ZoomInfo').map(o=>({owner:o.owner,name:o.name,type:o.type,gp:o.gp,close:dfmt(o.close)}));return {group:'owner',cols:[['name','Opportunity'],['type','Type'],['close','Close Date'],['gp','GP','gbp']],rows}}},
- zideals:{name:'ZoomInfo – Deals',z:'ZoomInfo_Deals',desc:'All opportunities sourced from ZoomInfo, by stage.',folder:'Xypher Sales Reports',type:'Opportunities',by:'Laura Galyer',range:'fy',
+ zideals:{fz:['fix','Same LeadSource backfill from Zoho_Source_Detail__c.'],name:'ZoomInfo – Deals',z:'ZoomInfo_Deals',desc:'All opportunities sourced from ZoomInfo, by stage.',folder:'Xypher Sales Reports',type:'Opportunities',by:'Laura Galyer',range:'fy',
   run(s,e){const rows=OPPS.filter(o=>o.src==='ZoomInfo'&&showReps().includes(o.owner)&&inRange(o.created,s,e)).map(o=>({stage:o.stage,owner:o.owner,name:o.name,gp:o.gp}));const st=[...OPEN_STAGES,'Closed Won','Closed Lost'];
    return {group:'stage',cols:[['name','Opportunity'],['owner','Owner'],['gp','GP','gbp']],rows:rows.sort((a,b)=>st.indexOf(a.stage)-st.indexOf(b.stage)),chart:{type:'bar',labels:st,data:st.map(x=>rows.filter(r=>r.stage===x).length)}}}},
- zilead:{name:'ZoomInfo – Leads Created',z:'ZoomInfo_Leads created',desc:'Leads with Lead Source = ZoomInfo, by owner and status.',folder:'Xypher Sales Reports',type:'Leads',by:'Laura Galyer',range:'fq',
+ zilead:{fz:['ok','Standard Lead report; the ZoomInfo value already exists on LeadSource.'],name:'ZoomInfo – Leads Created',z:'ZoomInfo_Leads created',desc:'Leads with Lead Source = ZoomInfo, by owner and status.',folder:'Xypher Sales Reports',type:'Leads',by:'Laura Galyer',range:'fq',
   run(s,e){const reps=showReps();const L=LEADS.filter(l=>l.src==='ZoomInfo'&&reps.includes(l.owner)&&inRange(l.created,s,e));const sts=['New','Working','Nurture','Qualified','Junk Lead'];const rows=reps.map(r=>{const o={rep:r};sts.forEach(x=>o[x]=L.filter(l=>l.owner===r&&l.status===x).length);o.tot=L.filter(l=>l.owner===r).length;return o});
    return {matrix:true,cols:[['rep','Rep'],...sts.map(x=>[x,x,'num']),['tot','Total','num']],rows,chart:{type:'bar',labels:reps,data:rows.map(r=>r.tot)}}}},
- ws:{name:'Account Whitespace – Missing Product',z:null,nw:1,desc:'Live accounts WITHOUT a Closed Won opportunity for the chosen product (cross-filter).',folder:'Xypher Account Management',type:'Accounts with/without Opportunities',by:'SaaScend',range:null,prod:true,
-  run(){const k=S.rf.prod;const rows=ACCTS.filter(a=>a.status==='Live'&&showReps().includes(a.owner)&&!a.owned.includes(k)).map(a=>({owner:a.owner,name:a.name,sector:a.sector,owns:a.owned.map(x=>PK[x].n).join(', '),tfy:a.tfy,open:openOppFor(a,k)?'Yes':'—'}));
+ ws:{fz:['fix','Cross-filter (Accounts WITHOUT Won Opportunities WHERE Product_Service_Line = X) is standard, but Product_Service_Line__c needs backfilling first.'],name:'Account Whitespace – Missing Product',z:null,nw:1,desc:'Active accounts WITHOUT a Closed Won opportunity for the chosen product (cross-filter).',folder:'Xypher Account Management',type:'Accounts with/without Opportunities',by:'SaaScend',range:null,prod:true,
+  run(){const k=S.rf.prod;const rows=ACCTS.filter(a=>a.status==='Active'&&showReps().includes(a.owner)&&!a.owned.includes(k)).map(a=>({owner:a.owner,name:a.name,sector:a.sector,owns:a.owned.map(x=>PK[x].n).join(', '),tfy:a.tfy,open:openOppFor(a,k)?'Yes':'—'}));
    return {group:'owner',cols:[['name','Account'],['sector','Sector'],['owns','Currently owns'],['open','Open opp?'],['tfy','Current FY Spend','gbp']],rows,note:`Cross-filter: Accounts WITHOUT Opportunities WHERE Stage = Closed Won AND Product = ${PK[k].n}. Est. whitespace GP: ${gbp(rows.length*PK[k].gp)}.`}}},
- winback:{name:'Lapsed & Dormant – Win-back List',z:null,nw:1,desc:'Accounts that used to spend and have stopped, ranked by previous spend.',folder:'Xypher Account Management',type:'Accounts',by:'SaaScend',range:null,
-  run(){const rows=ACCTS.filter(a=>['Lapsed','Dormant'].includes(a.status)&&showReps().includes(a.owner)).sort((a,b)=>b.clv-a.clv).map(a=>({status:a.status,name:a.name,owner:a.owner,owns:a.owned.map(x=>PK[x].n).join(', '),lfy:a.lfy,clv:a.clv}));
+ winback:{fz:['fix','Needs Lapsing / Dormant backfilled on the DXR BU relationship.'],name:'Lapsing & Dormant – Win-back List',z:null,nw:1,desc:'Accounts that used to spend and have stopped, ranked by previous spend.',folder:'Xypher Account Management',type:'Accounts',by:'SaaScend',range:null,
+  run(){const rows=ACCTS.filter(a=>['Lapsing','Dormant'].includes(a.status)&&showReps().includes(a.owner)).sort((a,b)=>b.clv-a.clv).map(a=>({status:a.status,name:a.name,owner:a.owner,owns:a.owned.map(x=>PK[x].n).join(', '),lfy:a.lfy,clv:a.clv}));
    return {group:'status',cols:[['name','Account'],['owner','Owner'],['owns','Previously bought'],['lfy','Prev FY Spend','gbp'],['clv','Lifetime Value','gbp']],rows}}},
- movers:{name:'Spend Movers – YoY',z:null,nw:1,desc:'Live accounts: current vs previous FY spend, with YoY % change.',folder:'Xypher Account Management',type:'Accounts',by:'SaaScend',range:null,
-  run(){const rows=ACCTS.filter(a=>a.status==='Live'&&a.lfy>0&&showReps().includes(a.owner)).sort((a,b)=>a.yoy-b.yoy).map(a=>({name:a.name,owner:a.owner,lfy:a.lfy,tfy:a.tfy,yoy:a.yoy}));
+ movers:{fz:['fix','Needs per-FY bookings on the account (Customer_Year_Summary__c, sandbox).'],name:'Spend Movers – YoY',z:null,nw:1,desc:'Active accounts: current vs previous FY spend, with YoY % change.',folder:'Xypher Account Management',type:'Accounts',by:'SaaScend',range:null,
+  run(){const rows=ACCTS.filter(a=>a.status==='Active'&&a.lfy>0&&showReps().includes(a.owner)).sort((a,b)=>a.yoy-b.yoy).map(a=>({name:a.name,owner:a.owner,lfy:a.lfy,tfy:a.tfy,yoy:a.yoy}));
    return {cols:[['name','Account'],['owner','Owner'],['lfy','Prev FY','gbp'],['tfy','Current FY','gbp'],['yoy','YoY %','delta']],rows}}}
 };
 function openReport(k){S.rep=k;S.rf.range=RDEF[k].range;S.view='reports';render()}
 function reportList(){return `<div class="ph"><div class="ph-t"><div class="ico rep">▥</div><div><small>Reports</small><h1>Favourites</h1></div></div><button class="btn pri">New Report</button></div>
- <div class="cmp"><table><tr><th>Report Name</th><th>Description</th><th>Folder</th><th>Report Type</th><th>Created By</th><th>Zoho source</th></tr>
- ${Object.entries(RDEF).map(([k,r])=>`<tr class="click" onclick="openReport('${k}')"><td>★ <a>${esc(r.name)}</a>${r.nw?' <span class="tag n" style="font-size:10px;border-radius:8px;padding:1px 6px">NEW</span>':''}</td><td class="muted">${esc(r.desc)}</td><td>${r.folder}</td><td>${r.type}</td><td>${r.by}</td><td class="muted" style="font-size:11px">${r.z?esc(r.z):'—'}</td></tr>`).join('')}</table></div>`}
+ <div class="cmp"><table><tr><th>Report Name</th><th>Description</th><th>Folder</th><th>Report Type</th><th>Buildable</th><th>Zoho source</th></tr>
+ ${Object.entries(RDEF).map(([k,r])=>`<tr class="click" onclick="openReport('${k}')"><td>★ <a>${esc(r.name)}</a>${r.nw?' <span class="tag n" style="font-size:10px;border-radius:8px;padding:1px 6px">NEW</span>':''}</td><td class="muted">${esc(r.desc)}</td><td>${r.folder}</td><td>${r.type}</td><td><span class="tag" title="${esc(r.fz[1])}" style="background:${FZL[r.fz[0]][1]};color:${FZL[r.fz[0]][0]};cursor:help;font-size:10px;border-radius:8px;padding:1px 7px;white-space:nowrap">${FZL[r.fz[0]][2]} ⓘ</span></td><td class="muted" style="font-size:11px">${r.z?esc(r.z):'—'}</td></tr>`).join('')}</table></div>`}
 function fmtCell(v,f){if(f==='gbp')return gbp(v);if(f==='pct')return pct(v);if(f==='rag'){const c=RAG(v);return `<span class="rag" style="background:${c[1]}">${pct(v)}</span>`}if(f==='delta')return `<span class="delta ${v>=0?'up':'dn'}">${v>=0?'▲':'▼'} ${pct(Math.abs(v))}</span>`;return typeof v==='number'?v.toLocaleString():esc(v)}
 function reportRun(){const d=RDEF[S.rep];const rg=S.rf.range&&RANGES[S.rf.range];const out=d.run(rg?rg[1]:null,rg?rg[2]:null);const numCols=out.cols.filter(c=>c[2]==='gbp'||c[2]==='num');
   const body=()=>{if(out.group){const gs=[...new Set(out.rows.map(r=>r[out.group]))];return gs.map(g=>{const rs=out.rows.filter(r=>r[out.group]===g);return `<tr class="grp"><td colspan="${out.cols.length}">${esc(g)} (${rs.length})${numCols.length?' · '+numCols.map(c=>c[1]+': '+fmtCell(sum(rs,c[0]),c[2])).join(' · '):''}</td></tr>`+rs.map(r=>`<tr>${out.cols.map(c=>`<td class="${c[2]&&c[2]!=='rag'?'num':''}">${fmtCell(r[c[0]],c[2])}</td>`).join('')}</tr>`).join('')}).join('')}
@@ -508,32 +526,40 @@ function reportRun(){const d=RDEF[S.rep];const rg=S.rf.range&&RANGES[S.rf.range]
    ${S.rep==='rag'?'<div class="fpill"><b>Stage</b>equals Closed Won</div>':''}
    ${S.rep==='lost'?'<div class="fpill"><b>Stage</b>equals Closed Lost</div>':''}
    ${S.rep.startsWith('zi')?'<div class="fpill"><b>Lead Source</b>equals ZoomInfo</div>':''}
-   ${S.rep==='ws'||S.rep==='movers'?'<div class="fpill"><b>Customer Status</b>equals Live</div>':''}
-   ${S.rep==='winback'?'<div class="fpill"><b>Customer Status</b>equals Lapsed, Dormant</div>':''}
+   ${S.rep==='ws'||S.rep==='movers'?'<div class="fpill"><b>DXR Relationship Status</b>equals Active</div>':''}
+   ${S.rep==='winback'?'<div class="fpill"><b>DXR Relationship Status</b>equals Lapsing, Dormant</div>':''}
    ${d.z?`<div class="note">Rebuilt from Zoho report <b>${esc(d.z)}</b>.</div>`:'<div class="note">New report. Nothing like it exists in Zoho today.</div>'}
   </div></div>`}
 
 /* ============ BUILD NOTES ============ */
-function notes(){const M=[
- ["Harry's Pod / Sarah's Pod","2 near-identical 14-component dashboards with rep names hardcoded in every filter, plus 10+ per-person copies (Harry Trice / Sarah Taylor / Laura Price … Sales Dashboard)","1 dynamic dashboard with a <b>Pod</b> filter and 'View as'. Pod = Role (Pod Lead → AEs). Adding or removing a rep changes the role, not the dashboard."],
- ['POD / Individual GP Target (month, FQ, FY)','target_meter on Quotes · SUM(GP In Year) · Quote Stage = Closed Won · targets typed into each component (e.g. £122,869 / £368,605 / £1,217,420)','Gauge on Opportunity GP. Targets move into a <b>Sales Target</b> object (rep × month), mirroring Zoho\'s Sales_Targets module, so they are data rather than component settings. Joined via a custom report type.'],
- ['Fiscal periods ($THISFQ / $THISFY)','Zoho fiscal year = Nov–Oct','Set the Salesforce <b>fiscal year start = November</b> before building any report. This must be done before 1 Nov go-live.'],
- ['GP In Year / Total GP %','Fields on Quotes (not Deals)','GP needs to sit on the Opportunity (roll-up from quote or line items) so every Opportunity report and dashboard can use it. Depends on the Product Catalogue and Pricing Desk work.'],
- ['Sales Pipeline Conversion % (12m rolling)','Funnel: All Deals Created → Quotes Created → Deals Won','Report on Opportunities created in the last 365 days, bucketed by the furthest stage reached (Opportunity field history or a "Reached Proposal" checkbox).'],
- ['GP Split FY / New Business Contributor','Chart on Quotes by Deal Type / Owner','Opportunity Type (New Business / Existing - Upsell / Existing Renewal / Tender) grouped by owner.'],
- ["Pod KPI's MTD / Meetings by Type QTD",'Comparator of 5 sub-reports (Deals, Meetings, Dials, Leads, GP) / 4 Event types','Dashboard table component, or a joined report across Opportunities, Events, Tasks and Leads. Meeting type = Event.Type picklist (New / Existing / Sequencing / Inbound). Dials need the dialler logging Tasks.'],
- ['Account Management – Team + Pod 1 / Pod 2 individual','target_meter excluding Rick / Scott / Jason by name','Same dashboard with Role filter = Account Management. No name-based exclusions.'],
- ['Sales Revenue vs AOV (quadrant)','Zoho quadrant chart by Quote Owner','Scatter chart: FY GP vs average order value per rep.'],
- ['Account ownership / distribution (Live, Lapsed, Dormant)','Accounts by Company Owner, COUNT + SUM(Customer Lifetime Value), filtered by Customer Status','Account report by Owner and Customer Status. Current and Previous FY spend come from the Business Central feed.'],
- ['Products Bought (whitespace source)','Manual multi-select on Account (10 values)','Derived from Closed Won Opportunity Products (roll-up or flow), so whitespace stays accurate without manual upkeep. Migrate the Zoho values once as history.'],
- ['Whitespace / Next best product','Does not exist in Zoho','New: penetration by product, owner × product heatmap, cross-filter report (Accounts WITHOUT Closed Won Opp for product X), and a Whitespace tile component on the Account page.'],
- ['Individual Sales Performance (RAG)','Zoho report with Purple / Green / Amber / Red bands in the name','Summary formula Attainment % with conditional formatting: >100% purple, 90–99.99% green, 50–89.99% amber, <50% red.'],
- ['"This Week Sales DO NOT TOUCH"','Protected by its name','Put it in a read-only folder (Viewer access), so the name no longer needs to warn people off.']];
- return `<div class="ph"><div class="ph-t"><div class="ico note">✎</div><div><small>Build notes</small><h1>Zoho → Salesforce reporting map</h1></div></div></div>
- <div class="cmp"><div class="cmp-b"><p>Source: the live DXR Zoho CRM org (read-only), specifically the <b>Harry's Pod</b>, <b>Sarah's Pod</b> and <b>Account Management</b> dashboards and the favourite reports. Zoho has ~45 dashboards, many of them per-person copies of the same template.</p>
- <table class="map"><tr><th>Component</th><th>How Zoho does it today</th><th>Salesforce approach</th></tr>${M.map(r=>`<tr><td>${r[0]}</td><td class="muted">${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</table>
+function notes(){
+ const PRE=[
+  ['P1','Pod field on User','Harry, Sarah and all 10 DXR reps share the "Sales Pod 1" roles with the Leeds team, and none of them has a Manager set, so pods cannot be told apart today. Add <code>User.Sales_Pod__c</code> plus an Opportunity formula <code>Owner_Pod__c</code> to drive the dashboard Pod filter. This avoids changing roles, so sharing is untouched.','Every pod view','Low'],
+  ['P2','DXR fiscal year fields','The org fiscal year starts in <b>January</b> and group exec reporting uses it. DXR runs Nov–Oct. Changing the org setting would move every BU, so add formula fields <code>DXR_Fiscal_Year__c</code> / <code>DXR_Fiscal_Quarter__c</code> and "Is Current DXR FY / FQ" checkboxes, and use those instead of THIS FISCAL YEAR.','All period filters','Low'],
+  ['P3','GP on Opportunity','<b>Biggest gap.</b> There is no GP or margin field anywhere on Opportunity. Zoho "GP In Year" was appended into Description during migration (Zoho holds £2.31M GP on 507 won quotes this FY). Add <code>GP_In_Year__c</code> and backfill it from Zoho <b>before API access ends on 17 Oct</b>. Going forward, GP needs cost of sale in the catalogue (today only 23 of 749 products have one). Until then, every GP view can run on Amount (bookings).','All GP targets, AOV, splits','Medium, with a date risk'],
+  ['P4','Opportunity Type backfill','1,355 of 1,382 DXR deals in the last 12 months are typed "New Business". The real value is in <code>Zoho_Deal_Type__c</code> (New Business 454 · Existing - Upsell 323 · Existing Renewal 467 · Tender 27 · Partner 94). Map it to New Business / Cross-Sell / Expansion / Renewal.','GP split, New Business contributor, renewals','Low'],
+  ['P5','Service line backfill','<code>Product_Service_Line__c</code> is blank on 545 of 563 DXR won deals, and won deals have no line items. Backfill from Zoho Quoted_Items (the product mapping is already under way) or from the deal name. Make it required at Closed Won going forward.','All whitespace views','Medium'],
+  ['P6','Services owned per account','A list view cannot use a cross-filter, so add one "Has &lt;service&gt;" flag per service on Account (10 checkbox or number fields), kept current by the nightly Customer_Year_Summary batch (in sandbox). This enables the "Missing SOC" list views, the heatmap and the next-best-product formula.','Whitespace, list views, next best product','Medium'],
+  ['P7','DXR relationship status','Account_BU_Relationship__c.Relationship_Status__c (Active / Lapsing / Dormant / Historic) is the right field, but DXR has only 256 Active rows and no Lapsing or Dormant. Backfill from Zoho Customer Status (823 Live / 159 Lapsed / 252 Dormant), then derive it from last-invoice date.','Account Management distribution, win-back','Low'],
+  ['P8','Per-rep targets','Sales_Target__c exists in sandbox (built for the exec dashboard) but is keyed by month and service category with no rep. Add a Rep / Owner and BU dimension, then load the DXR pod targets. Standard dashboard gauges only take fixed breakpoints, so gauge on Attainment % (50 / 90 / 100%).','Every target gauge and RAG','Low'],
+  ['P9','Meeting type + lead source','Add <code>Event.Meeting_Type__c</code> (Zoho has New / Existing / Sequencing / Inbound) and backfill it. Map <code>Zoho_Source_Detail__c</code> → LeadSource (ZoomInfo = 142 deals).','Meetings by Type, ZoomInfo reports','Low'],
+  ['P10','Owner clean-up','60 DXR deals won in the last 12 months (£1.53M) are still owned by the "Saascend" integration user, so they drop out of every rep and pod view. Reassign them from Legacy_Owner__c.','All rep views','Low'],
+  ['P11','Dialler logging','"All Calls Today" and Dials need Call Tasks. Only 52 tasks were logged by DXR managers and reps in the last 30 days. Blocked on the dialler decision.','Calls, Dials KPI','External']];
+ const TOOL=[['Standard Reports & Dashboards','✅ Recommended','Covers everything in this mock-up: gauges, funnel, scatter, stacked bars, tables, cross-filters, dynamic dashboards and dashboard filters (max 3). No extra licence. Consistent with the exec and rep-activity dashboards already built.'],
+  ['CRM Analytics (Tableau CRM)','❌ Not licensed','No CRM Analytics Plus / Growth licences in the org (only 3 template-admin seats). It would be needed for true quadrant charts or AI scoring, and neither is required here.'],
+  ['Tableau Next','⚠️ Available, not worth it','1 Creator + consumer seats are included, but it needs Data Cloud modelling. Overkill for pod and account-management reporting.'],
+  ['Lightning Web Component','Only for the account tile grid','The "Product Whitespace" tiles on the Account page. A no-code fallback is a page section of per-service checkboxes.']];
+ const M=[['Pod dashboards (Harry / Sarah)','Standard dashboard + Pod filter (P1) + DXR FY (P2)','fix'],['Pod / team GP gauges + RAG','Gauge on Sales_Target__c attainment % (P3, P8)','fix'],['Conversion funnel (12m)','Funnel chart + Max Stage Reached field','fix'],['GP split / New Business contributor','Opportunity Type backfill (P4) + GP (P3)','fix'],['Pod KPIs MTD','Table component; Dials need P11','fix'],['Meetings by type','Meeting_Type__c (P9)','fix'],['Account ownership / distribution','ABUR status backfill (P7)','fix'],['Lead pipeline ownership','Standard Lead report','ok'],['Revenue vs AOV','Scatter chart (Amount now, GP later)','ok'],['Whitespace penetration / heatmap','P5 + P6','fix'],['Next best product','Formula on Account using cross-sell rules (P6)','fix'],['Spend movers / YoY / win-back','Customer_Year_Summary__c by DXR FY (P2) + P7','fix'],['Accounts list views + filters','Standard list views on P6 flags','fix'],['Account whitespace tiles','LWC (or checkbox section)','lwc'],['Closed Lost, New Deals, Meetings, This Week','Standard reports; no prerequisites','ok']];
+ const chip=k=>`<span class="tag" style="background:${FZL[k][1]};color:${FZL[k][0]};font-size:10px;border-radius:8px;padding:1px 7px;white-space:nowrap">${FZL[k][2]}</span>`;
+ return `<div class="ph"><div class="ph-t"><div class="ico note">✎</div><div><small>Build notes · checked against Xypher_Prod and Xypher_Sandbox_FC metadata and data, 30 Sep 2026</small><h1>Can we build this? Buildability check</h1></div></div></div>
+ <div class="cmp"><div class="cmp-b">
+ <div class="note"><b>Verdict:</b> every view in this mock-up can be built with <b>standard Salesforce Reports & Dashboards</b> plus one optional LWC. Very little works on day one, though, because the DXR migration did not carry over several fields the Zoho dashboards depend on: GP, deal type, service line, customer status and meeting type. Most of these fixes are backfills from Zoho, which must be pulled before <b>Zoho API access ends on 17 Oct</b>. Build and test everything in <b>Xypher_Sandbox_FC</b> first.</div>
+ <h2 class="sec">Which tool</h2><table class="map"><tr><th>Option</th><th>Verdict</th><th>Why</th></tr>${TOOL.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</table>
+ <h2 class="sec">Prerequisites (data architecture gaps found)</h2><table class="map"><tr><th>#</th><th>Fix</th><th>What we found / what to do</th><th>Unblocks</th><th>Effort</th></tr>${PRE.map(r=>`<tr><td>${r[0]}</td><td style="white-space:nowrap;font-weight:600">${r[1]}</td><td>${r[2]}</td><td class="muted">${r[3]}</td><td>${r[4]}</td></tr>`).join('')}</table>
+ <h2 class="sec">Component-by-component</h2><table class="map"><tr><th>Mock-up view</th><th>How it is built</th><th>Status</th></tr>${M.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${chip(r[2])}</td></tr>`).join('')}</table>
+ <h2 class="sec">Already in place (reused, nothing new)</h2><p>Opportunity stages, Loss_Reason__c, Business_Unit__c, LeadSource (incl. ZoomInfo), Call_Disposition__c on Task, Account_BU_Relationship__c (status, Sales LCY, last invoice), Total_ERP_Sales__c, and in sandbox Customer_Year_Summary__c and Sales_Target__c.</p>
  <h2 class="sec">Open questions for Harry / Sarah</h2>
- <ol><li>Are pod targets the same numbers as Spiff quota, or a separate management target?</li><li>Account Management vs New Business split: is it by role, or by Opportunity Type?</li><li>Which products define "whitespace"? Are all 10 valid for every sector?</li><li>Should Lapsed and Dormant be system-calculated (e.g. no spend in 12 / 24 months) rather than set by hand?</li><li>Do you need renewal dates on Accounts (contract end) to drive a renewals view?</li></ol></div></div>`}
+ <ol><li>Pod membership: who is in Harry's pod and who is in Sarah's today, and do pods double as the Account Management split?</li><li>Are pod targets the same as Spiff quota, or a separate management target?</li><li>Is GP a must-have from day one, or can bookings (Amount) stand in until cost of sale is in the catalogue?</li><li>Which cross-sell rules should drive "next best product" (e.g. Cyber Essentials → Pen Testing)?</li><li>Should Lapsing / Dormant be calculated from last invoice (e.g. 12 / 24 months)?</li></ol></div></div>`}
 
 render();
 </script>
